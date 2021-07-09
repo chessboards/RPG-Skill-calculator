@@ -20,11 +20,11 @@ namespace _4d6 {
             else if (ScoreFormula.IsDiceNotation(input)) // else if dice notation, parse the dice text
                 ScoreFormula.ParseDiceText(input);
             else { // otherwise if the input is not an integer nor dice notation,
-                do {
+                while (!ScoreFormula.IsDiceNotation(input) && !ScoreFormula.IsInitialRoll(input)) {
                     Console.WriteLine("Please enter either an initial roll value integer or dice notation: ");
                     input = Console.ReadLine();
                     if (input == "q") return; // exit program if q
-                } while (!ScoreFormula.IsDiceNotation(input) || !ScoreFormula.IsInitialRoll(input));
+                }
 
                 // now we can set the inital roll
                 if (ScoreFormula.IsInitialRoll(input)) // if a single initial roll integer, set the initial roll
@@ -58,7 +58,12 @@ namespace _4d6 {
         // "r6", "-52.2". keeps track of all steps of the formula for printing. Ex. Inital roll of 6, subtract 52.2
         private static List<string> formula = new List<string>();
 
-        // to implement: floating point nums, better error handling, better comments/docstrings, working program, push to github
+        // to implement:
+        // too large a number being entered error handling
+        // better error handling for regex
+        // more regex (in PrintFormula() or ParseOperation()
+        // more comments/docstrings
+        // a cool repo
 
         // !needs int/double test with regex
         public static void ParseOperation(string operation) {
@@ -67,9 +72,9 @@ namespace _4d6 {
 
             if (endOfKeywordIndex != 0) { // != null
                 string amountToApply = operation.Substring(endOfKeywordIndex); // everything after "subtract ". i.e 45, 2, etc.
-                try {
-                    int numberAmount = Convert.ToInt32(amountToApply); // test if actually a number. Maybe implement a better test
-
+                var isInteger = int.TryParse(amountToApply, out _);
+                var isDouble = double.TryParse(amountToApply, out _);
+                if (isInteger || isDouble) {
                     if (operation.StartsWith("subtract"))
                         formula.Add("-" + amountToApply);
                     else if (operation.StartsWith("add"))
@@ -81,11 +86,11 @@ namespace _4d6 {
                     else if (operation.StartsWith("modulus"))
                         formula.Add("%" + amountToApply);
                 }
-                catch (Exception e) {
-                    Console.WriteLine($"Error: Invalid operator format entered: \"{operation}\".");
-                    throw e;
-                }
+                else // amount to apply after operator is not a number? not an operation
+                    Console.WriteLine($"\nError: Invalid operator format entered: \"{operation}\".");
             }
+            else // no spaces? not an operation
+                Console.WriteLine($"\nError: Invalid operator format entered: \"{operation}\".");
         }
         /// <summary>
         /// Detects whether or not the input is in dice notation, returning a bool if it is or not.
@@ -128,8 +133,8 @@ namespace _4d6 {
             // Find the number of rolls and sides on the die from the user's input
             bool rollsSidesFlag = false; // false = rolls, true = sides
             foreach (char character in charArray) {
-                var isNumeric = int.TryParse(character.ToString(), out _);
-                if (isNumeric) {
+                var isNumericInt = int.TryParse(character.ToString(), out _);
+                if (isNumericInt) {
                     if (!rollsSidesFlag)
                         rolls += character.ToString();
                     else if (rollsSidesFlag)
