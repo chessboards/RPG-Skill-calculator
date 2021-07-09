@@ -60,7 +60,7 @@ namespace _4d6 {
 
         // to implement: floating point nums, better error handling, better comments/docstrings, working program, push to github
 
-        // needs int/double test with regex
+        // !needs int/double test with regex
         public static void ParseOperation(string operation) {
             int endOfKeywordIndex = 0;
             endOfKeywordIndex = operation.IndexOf(" ") + 1;
@@ -87,7 +87,11 @@ namespace _4d6 {
                 }
             }
         }
-
+        /// <summary>
+        /// Detects whether or not the input is in dice notation, returning a bool if it is or not.
+        /// </summary>
+        /// <param name="input">The user's input</param>
+        /// <returns>A bool representing whether or not the string is in dice notation</returns>
         public static bool IsDiceNotation(string input) {
             var results = Regex.Matches(input, @"\d+[d]{1}\d+"); // find all occurances of dice notation
             if (results.Count > 1 || results.Count == 0)
@@ -95,6 +99,12 @@ namespace _4d6 {
             else
                 return true;
         }
+        /// <summary>
+        /// Detects whether or not the input is an integer of any length, and returns if it is true or not.
+        /// A string instead of an integer is sent, as it takes less memory to use a string, and it would be added to the ledger list anyway, so conversions are unneeded.
+        /// </summary>
+        /// <param name="input">A string representing the user's input</param>
+        /// <returns>A bool indicating if the input is an integer or not</returns>
         public static bool IsInitialRoll(string input) {
             var results = Regex.Matches(input, @"[0-9]+"); // find all occurances of an integer
             if (results.Count > 1 || results.Count == 0)
@@ -107,10 +117,14 @@ namespace _4d6 {
         /// </summary>
         /// <param name="diceNotation">The user's inputted dice notation </param>
         public static void ParseDiceText(string diceNotation) {
-            char[] charArray = diceNotation.ToCharArray();
+            var validDiceNotation = Regex.Match(diceNotation, @"[0-9]+[d]{1}[0-9]+"); // Match the first occurance of a valid dice notation.
+                // why one might ask? sometimes the isDiceNotation regex fails, and a fully fledged error handler for imroper regex is kinda poop if the user
+                // is intentionally trying to mess up the program. also less memory usage if you just take a piece of valid input from the garble they intend to send
+            char[] charArray = validDiceNotation.ToString().ToCharArray();
             string rolls = "";
             string dieSides = "";
-
+            
+            // regex might improve readability and memory usage
             // Find the number of rolls and sides on the die from the user's input
             bool rollsSidesFlag = false; // false = rolls, true = sides
             foreach (char character in charArray) {
