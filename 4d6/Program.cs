@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace _4d6 {
     class Program {
+        // account for floating points, incorrect variables, different alphabetical characters, etc
         static void Main(string[] args) {
             Console.WriteLine("Welcome to the skill-level formula calculator! Enter q at any time to exit.");
 
@@ -13,12 +15,23 @@ namespace _4d6 {
             string input = Console.ReadLine();
             if (input == "q") return; // exit program if q
 
-            // if input a dice/roll pair, parse accordingly
-            if (input.Contains("d"))
-                ScoreFormula.ParseDiceText(input);
-            // otherwise set a custom intial roll value
-            else
+            if (ScoreFormula.IsInitialRoll(input)) // if a single initial roll integer, set the initial roll
                 ScoreFormula.SetInitialRoll(input);
+            else if (ScoreFormula.IsDiceNotation(input)) // else if dice notation, parse the dice text
+                ScoreFormula.ParseDiceText(input);
+            else { // otherwise if the input is not an integer nor dice notation,
+                do {
+                    Console.WriteLine("Please enter either an initial roll value integer or dice notation: ");
+                    input = Console.ReadLine();
+                    if (input == "q") return; // exit program if q
+                } while (!ScoreFormula.IsDiceNotation(input) || !ScoreFormula.IsInitialRoll(input));
+
+                // now we can set the inital roll
+                if (ScoreFormula.IsInitialRoll(input)) // if a single initial roll integer, set the initial roll
+                    ScoreFormula.SetInitialRoll(input);
+                else if (ScoreFormula.IsDiceNotation(input)) // else if dice notation, parse the dice text
+                    ScoreFormula.ParseDiceText(input);
+            }
 
             Console.WriteLine("\nEnter a blank line to see the entire formula and skill level once you have finished.");
 
@@ -43,23 +56,11 @@ namespace _4d6 {
     class ScoreFormula {
         private static Random rand = new Random();
         // "r6", "-52.2". keeps track of all steps of the formula for printing. Ex. Inital roll of 6, subtract 52.2
-        public static List<string> formula = new List<string>();
+        private static List<string> formula = new List<string>();
 
         // to implement: floating point nums, better error handling, better comments/docstrings, working program, push to github
-        // both require int tests
-        private static void RandomInitialRoll(int rolls, int sides) {
-            int initialRoll = 0;
-            for (int i = 0; i < rolls; i++) {
-                initialRoll += rand.Next(1, sides + 1); // maximum value is exclusive
-            }
 
-            formula.Add( "r" + Convert.ToString(initialRoll) ); // add to formula ledger
-        }
-        public static void SetInitialRoll(string rollValue) {
-            formula.Add( "r" + rollValue ); // manually set a roll value instead of it being random
-        }
-        ///////////////////////////////////////////////////
-
+        // needs int/double test with regex
         public static void ParseOperation(string operation) {
             int endOfKeywordIndex = 0;
             endOfKeywordIndex = operation.IndexOf(" ") + 1;
@@ -86,13 +87,32 @@ namespace _4d6 {
                 }
             }
         }
-        public static void ParseDiceText(string dice) {
-            char[] charArray = dice.ToCharArray();
+
+        public static bool IsDiceNotation(string input) {
+            var results = Regex.Matches(input, @"\d+[d]{1}\d+"); // find all occurances of dice notation
+            if (results.Count > 1 || results.Count == 0)
+                return false;
+            else
+                return true;
+        }
+        public static bool IsInitialRoll(string input) {
+            var results = Regex.Matches(input, @"[0-9]+"); // find all occurances of an integer
+            if (results.Count > 1 || results.Count == 0)
+                return false;
+            else
+                return true;
+        }
+        /// <summary>
+        /// Parses the passed dice notation, and sets the intial roll as an additive of `rolls` rolls on a `dieSides` sided die
+        /// </summary>
+        /// <param name="diceNotation">The user's inputted dice notation </param>
+        public static void ParseDiceText(string diceNotation) {
+            char[] charArray = diceNotation.ToCharArray();
             string rolls = "";
             string dieSides = "";
 
-            // find the rolls&sides variables from the user's input
-            bool rollsSidesFlag = false; // false = rolls, sides = true
+            // Find the number of rolls and sides on the die from the user's input
+            bool rollsSidesFlag = false; // false = rolls, true = sides
             foreach (char character in charArray) {
                 var isNumeric = int.TryParse(character.ToString(), out _);
                 if (isNumeric) {
@@ -102,53 +122,82 @@ namespace _4d6 {
                         dieSides += character.ToString();
                 } 
                 else 
-                    rollsSidesFlag = true; // we have hit 'd' of string "4d6" for example. numbers to the right of d are the amount of sides of the die
+                    rollsSidesFlag = true; // we have hit 'd' of string "4d6" for example. now viewing sides
                 
             }
 
-            // now that we have the rolls&sides, make the inital roll(s)
+            // if no rolls specified (like in string "d5"), then assume the user wishes for 1 roll to occur (dice notation)
+            if (rolls == "")
+                rolls = "1";
+            // if no die sides specified (like in string "4d"), then assume the user wishes for a 6 sided die (dice notation)
+            if (dieSides == "")
+                dieSides = "6";
+
+            // Now that we have the rolls&sides, make the inital roll(s)
             RandomInitialRoll(Convert.ToInt32(rolls), Convert.ToInt32(dieSides));
         }
+        /// <summary>
+        /// Uses rolls and sides to generate the inital roll value from dice notation. The additive result from each roll is set as the initial roll in the ledger.
+        /// </summary>
+        /// <param name="rolls">The number of times the die will be rolled. After each roll, the side landed on will be added to the initial roll.</param>
+        /// <param name="sides">The number of sides the die contains.</param>
+        private static void RandomInitialRoll(int rolls, int sides) {
+            int initialRoll = 0;
+            for (int i = 0; i < rolls; i++) {
+                initialRoll += rand.Next(1, sides + 1); // maximum value is exclusive
+            }
+
+            formula.Add("r" + Convert.ToString(initialRoll)); // add to formula ledger
+        }
+        /// <summary>
+        /// Set the inital roll value as a custom value instead of a random generation from dice notation
+        /// </summary>
+        /// <param name="rollValue">An integer as a string. A string value because it takes less memory to use a string than convert,
+        /// and it's being added to the ledger as a string anyway.</param>
+        public static void SetInitialRoll(string rollValue) {
+            formula.Add("r" + rollValue); // manually set a roll value instead of it being random
+        }
+        /// <summary>
+        /// Prints the skill formula steps within the var formula in a readable format, as well as the final result of those operations.
+        /// </summary>
         public static void PrintFormula() {
             double result = 0;
 
             for (int i = 0; i < formula.Count; i++) {
-                string formulaStep = formula[i];
+                string formulaStep = formula[i]; // e.g step 1,2,3, etc.
                 string message = $"Step #{i+1}: ";
-                double amountToApply = Convert.ToDouble(formulaStep.Substring(1)); // number after arithmetic code
+                string amountToApply = formulaStep.Substring(1); // the amount to apply after the operation code. for instance "1441" in string "-1441"
+                double numericalAmountToApply = Convert.ToDouble(amountToApply); // double, as may be floating point
 
                 if (formulaStep.StartsWith("r")) { // initial roll
-                    // substring retrieves all numbers after - in string "-131312314" for instance
-                    message += "an initial roll of " + formulaStep.Substring(1);
-                    result = amountToApply;
+                    message += "an initial roll of " + amountToApply;
+                    result = numericalAmountToApply;
                 }
                 if (formulaStep.StartsWith("-")) {
-                    message += "subtract " + formulaStep.Substring(1);
-                    result -= amountToApply;
+                    message += "subtract " + amountToApply;
+                    result -= numericalAmountToApply;
                 }
                 if (formulaStep.StartsWith("+")) { 
-                    message += "add " + formulaStep.Substring(1);
-                    result += amountToApply;
+                    message += "add " + amountToApply;
+                    result += numericalAmountToApply;
                 }
                 if (formulaStep.StartsWith("/")) { 
-                    message += "divide " + formulaStep.Substring(1);
-                    result /= amountToApply;
+                    message += "divide " + amountToApply;
+                    result /= numericalAmountToApply;
                 }
                 if (formulaStep.StartsWith("*")) {
-                    message += "multiply " + formulaStep.Substring(1);
-                    result *= amountToApply;
+                    message += "multiply " + amountToApply;
+                    result *= numericalAmountToApply;
                 }
                 if (formulaStep.StartsWith("%")) {
-                    message += "modulus " + formulaStep.Substring(1);
-                    result %= amountToApply;
+                    message += "modulus " + amountToApply;
+                    result %= numericalAmountToApply;
                 }
 
-                Console.WriteLine(message); // print step
+                Console.WriteLine(message); // Print the step information
             }
             
             Console.WriteLine("Final skill-level result: " + result + "!"); // Finally, print the calculated result
         }
-
-
     }
 }
