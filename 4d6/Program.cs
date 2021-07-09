@@ -11,23 +11,23 @@ namespace _4d6 {
         static void Main(string[] args) {
             Console.WriteLine("Welcome to the skill-level formula calculator! Enter q at any time to exit.");
 
-            Console.WriteLine("Enter your dice and rolls (ex. 4d6, 3d12), or an initial roll value (4, 6, 24): ");
+            Console.WriteLine("Enter your dice notation (ex. 4d6, 3d12), or an initial roll value (4, 6, 24): ");
             string input = Console.ReadLine();
             if (input == "q") return; // exit program if q
 
-            if (ScoreFormula.IsInitialRoll(input)) // if a single initial roll integer, set the initial roll
+            if (ScoreFormula.IsCustomRollInt(input)) // if a single initial roll integer, set the initial roll
                 ScoreFormula.SetInitialRoll(input);
             else if (ScoreFormula.IsDiceNotation(input)) // else if dice notation, parse the dice text
                 ScoreFormula.ParseDiceText(input);
             else { // otherwise if the input is not an integer nor dice notation,
-                while (!ScoreFormula.IsDiceNotation(input) && !ScoreFormula.IsInitialRoll(input)) {
+                while (!ScoreFormula.IsDiceNotation(input) && !ScoreFormula.IsCustomRollInt(input)) {
                     Console.WriteLine("Please enter either an initial roll value integer or dice notation: ");
                     input = Console.ReadLine();
                     if (input == "q") return; // exit program if q
                 }
 
                 // now we can set the inital roll
-                if (ScoreFormula.IsInitialRoll(input)) // if a single initial roll integer, set the initial roll
+                if (ScoreFormula.IsCustomRollInt(input)) // if a single initial roll integer, set the initial roll
                     ScoreFormula.SetInitialRoll(input);
                 else if (ScoreFormula.IsDiceNotation(input)) // else if dice notation, parse the dice text
                     ScoreFormula.ParseDiceText(input);
@@ -60,6 +60,7 @@ namespace _4d6 {
 
         // to implement:
         // too large a number being entered error handling
+        // more standardization for parameters, return values, and print statements (easier to find where things are)
         // better error handling for regex
         // more regex (in PrintFormula() or ParseOperation()
         // more comments/docstrings
@@ -86,6 +87,7 @@ namespace _4d6 {
                     else if (operation.StartsWith("modulus"))
                         formula.Add("%" + amountToApply);
                 }
+                // ERROR FOR SOME REASON
                 else // amount to apply after operator is not a number? not an operation
                     Console.WriteLine($"\nError: Invalid operator format entered: \"{operation}\".");
             }
@@ -98,7 +100,16 @@ namespace _4d6 {
         /// <param name="input">The user's input</param>
         /// <returns>A bool representing whether or not the string is in dice notation</returns>
         public static bool IsDiceNotation(string input) {
-            var results = Regex.Matches(input, @"\d+[d]{1}\d+"); // find all occurances of dice notation
+            var results = Regex.Matches(input, @"\d+d\d+"); // find all occurances of dice notation
+            var nums = Regex.Matches(results.ToString(), @"\d+"); // all numbers in the dice notation
+
+            foreach (Match match in nums) {
+                Console.WriteLine("DN: " + match.ToString());
+                if (IsNumberTooBig(match.ToString())) {
+                    return false; // TOO BIG. cannot use
+                }
+            }
+
             if (results.Count > 1 || results.Count == 0)
                 return false;
             else
@@ -110,12 +121,27 @@ namespace _4d6 {
         /// </summary>
         /// <param name="input">A string representing the user's input</param>
         /// <returns>A bool indicating if the input is an integer or not</returns>
-        public static bool IsInitialRoll(string input) {
+        public static bool IsCustomRollInt(string input) {
             var results = Regex.Matches(input, @"[0-9]+"); // find all occurances of an integer
-            if (results.Count > 1 || results.Count == 0)
+
+            if (IsNumberTooBig(input))
+                return false;
+            else if (results.Count > 1 || results.Count == 0)
                 return false;
             else
                 return true;
+        }
+        public static bool IsNumberTooBig(string num) {
+            try {
+                bool isInfinite = double.IsInfinity(Convert.ToDouble(num));
+                if (isInfinite) // TOO BIG!!
+                    return true;
+                else // not too big
+                    return false;
+            }
+            catch (Exception e) {
+                return true; // TOO BIG!!!!
+            }
         }
         /// <summary>
         /// Parses the passed dice notation, and sets the intial roll as an additive of `rolls` rolls on a `dieSides` sided die
