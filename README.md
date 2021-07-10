@@ -5,5 +5,8 @@
 This application is based off Head First C#'s, but more user friendly and with more use cases.
 This tool allows game masters to create intricate skill attribute/level algorithms with an easy to read console interface.
 
+# How to run
+Simply navigate to the Releases tab to the right, download and unzip the executable, and run.
+
 # License
 MIT license
