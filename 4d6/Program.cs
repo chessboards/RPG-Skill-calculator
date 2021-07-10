@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 
-namespace _4d6 {
+namespace Skill_Calc {
     class Program {
         static void Main(string[] args) {
             Console.WriteLine("Welcome to the skill-level formula calculator! Enter q at any time to exit.");
