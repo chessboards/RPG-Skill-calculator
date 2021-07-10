@@ -8,5 +8,9 @@ This tool allows game masters to create intricate skill attribute/level algorith
 # How to run
 Simply navigate to the Releases tab to the right, download and unzip the executable, and run.
 
+# Release versioning
+[major].[minor]]
+- [major] something like a new feature
+- [minor] small features, bug fixes, patches
 # License
 MIT license
