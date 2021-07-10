@@ -98,19 +98,18 @@ namespace Skill_Calc {
         /// <param name="input">The user's input</param>
         /// <returns>A bool representing whether or not the string is in dice notation</returns>
         public static bool IsDiceNotation(string input) {
-            var results = Regex.Matches(input, @"\d+d\d+"); // find all occurances of dice notation
+            var results = Regex.Match(input, @"^\d+d\d+$"); // retrieves dice notation from string, or nothing if not in format "(int)d(int)"
             var nums = Regex.Matches(results.ToString(), @"\d+"); // all numbers in the dice notation
 
             foreach (Match match in nums) {
-                Console.WriteLine("DN: " + match.ToString());
                 if (IsNumberTooBig(match.ToString())) {
                     return false; // TOO BIG. cannot use
                 }
             }
 
-            if (results.Count > 1 || results.Count == 0)
+            if (results.Length == 0) // no results?
                 return false;
-            else
+            else // 1 result. exactly what we want
                 return true;
         }
         /// <summary>
@@ -120,7 +119,7 @@ namespace Skill_Calc {
         /// <param name="input">A string representing the user's input</param>
         /// <returns>A bool indicating if the input is an integer or not</returns>
         public static bool IsCustomRollInt(string input) {
-            var results = Regex.Matches(input, @"[0-9]+"); // find all occurances of an integer
+            var results = Regex.Matches(input, @"\d+"); // find all occurances of an integer
 
             if (IsNumberTooBig(input))
                 return false;
@@ -147,13 +146,12 @@ namespace Skill_Calc {
             }
         }
         /// <summary>
-        /// Parses the passed dice notation, and sets the intial roll as an additive of `rolls` rolls on a `dieSides` sided die
+        /// Parses the passed dice notation, and sets the intial roll as an additive of `rolls` rolls on a `dieSides` sided die.
+        /// Assumes the passed dice notation is sanitized and actually dice notation.
         /// </summary>
         /// <param name="diceNotation">The user's inputted dice notation </param>
         public static void ParseDiceText(string diceNotation) {
-            var validDiceNotation = Regex.Match(diceNotation, @"[0-9]+[d]{1}[0-9]+"); // Match the first occurance of a valid dice notation.
-                // why one might ask? sometimes the isDiceNotation regex fails, and a fully fledged error handler for imroper regex is kinda poop if the user
-                // is intentionally trying to mess up the program. also less memory usage if you just take a piece of valid input from the garble they intend to send
+            var validDiceNotation = Regex.Match(diceNotation, @"^\d+d{1}\d+$"); // Retrieve dice notation
             char[] charArray = validDiceNotation.ToString().ToCharArray();
             string rolls = "";
             string dieSides = "";
