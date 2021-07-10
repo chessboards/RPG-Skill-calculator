@@ -36,7 +36,7 @@ namespace Skill_Calc {
 
             // Continually loop asking for operation steps to take until user finishes with a blank line
             while (true) {
-                Console.WriteLine("Enter an operation (ex. subtract 5, multiply 9, divide 3, etc.): ");
+                Console.WriteLine("Enter an operation (ex. subtract 5, multiply 9.2, divide 3.77, etc.): ");
                 string op = Console.ReadLine();
                 if (op == "q") return; // exit program if q
                 if (op == "" || op == " ") break; // continue onward to PrintFormula if blank
