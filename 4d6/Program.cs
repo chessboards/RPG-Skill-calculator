@@ -39,9 +39,9 @@ namespace _4d6 {
             while (true) {
                 Console.WriteLine("Enter an operation (ex. subtract 5, multiply 9, divide 3, etc.): ");
                 string op = Console.ReadLine();
-                ScoreFormula.ParseOperation(op);
                 if (op == "q") return; // exit program if q
                 if (op == "" || op == " ") break; // continue onward to PrintFormula if blank
+                ScoreFormula.ParseOperation(op);
             }
 
             // Print the steps and result to the user
@@ -59,14 +59,12 @@ namespace _4d6 {
         private static List<string> formula = new List<string>();
 
         // to implement:
-        // too large a number being entered error handling
         // more standardization for parameters, return values, and print statements (easier to find where things are)
         // better error handling for regex
         // more regex (in PrintFormula() or ParseOperation()
         // more comments/docstrings
         // a cool repo
 
-        // !needs int/double test with regex
         public static void ParseOperation(string operation) {
             int endOfKeywordIndex = 0;
             endOfKeywordIndex = operation.IndexOf(" ") + 1;
@@ -87,7 +85,6 @@ namespace _4d6 {
                     else if (operation.StartsWith("modulus"))
                         formula.Add("%" + amountToApply);
                 }
-                // ERROR FOR SOME REASON
                 else // amount to apply after operator is not a number? not an operation
                     Console.WriteLine($"\nError: Invalid operator format entered: \"{operation}\".");
             }
