@@ -7,7 +7,6 @@ using System.Text.RegularExpressions;
 
 namespace _4d6 {
     class Program {
-        // account for floating points, incorrect variables, different alphabetical characters, etc
         static void Main(string[] args) {
             Console.WriteLine("Welcome to the skill-level formula calculator! Enter q at any time to exit.");
 
@@ -62,9 +61,11 @@ namespace _4d6 {
         // more standardization for parameters, return values, and print statements (easier to find where things are)
         // better error handling for regex
         // more regex (in PrintFormula() or ParseOperation()
-        // more comments/docstrings
-        // a cool repo
 
+        /// <summary>
+        /// Parses the user's passed operation in format "operator amount", e.g "subtract 6.213". This is then added to the formula ledger
+        /// </summary>
+        /// <param name="operation">The user's passed operation</param>
         public static void ParseOperation(string operation) {
             int endOfKeywordIndex = 0;
             endOfKeywordIndex = operation.IndexOf(" ") + 1;
@@ -128,6 +129,11 @@ namespace _4d6 {
             else
                 return true;
         }
+        /// <summary>
+        /// Detects whether or not a passed number is infinity or exceeds the limits of its data type, and returns a bool.
+        /// </summary>
+        /// <param name="num">A number taken from the user's input to be passed</param>
+        /// <returns>A bool representing whether or not the passed number is too large for its datatype or not.</returns>
         public static bool IsNumberTooBig(string num) {
             try {
                 bool isInfinite = double.IsInfinity(Convert.ToDouble(num));
