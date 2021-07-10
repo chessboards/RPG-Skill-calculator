@@ -10,7 +10,7 @@ Simply navigate to the Releases tab to the right, download and unzip the executa
 
 # Release versioning
 [major].[minor]
-- [major] something like a new feature
+- [major] something like a new feature, or sometimes a rollover from minor patches
 - [minor] small features, bug fixes, patches
 # License
 MIT license
